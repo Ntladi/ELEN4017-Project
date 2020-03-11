@@ -1,0 +1,12 @@
+### C++ ###
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+### macOS ###
+*.DS_Store
