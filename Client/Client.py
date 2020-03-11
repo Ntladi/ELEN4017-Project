@@ -1,6 +1,6 @@
 import socket
 
-serverName = '192.168.43.52'#socket.gethostname() # Sets server name
+serverName = '10.203.39.28'
 serverPort = 12000 # Sets server port number
 
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Creates the client socket (IPv4, TCP)
