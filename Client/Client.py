@@ -1,17 +1,13 @@
-import socket
+import Connect
 
-serverName = '10.203.3.22'
-serverPort = 12000 # Sets server port number
-
-clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Creates the client socket (IPv4, TCP)
-clientSocket.connect((serverName,serverPort)) # Initiates TCP connection
+commandSocket = Connect.open_command()
 
 sentence = ''
 
 while sentence != 'stop':
-	sentence = input('Input text:') # Prompts user for input
-	clientSocket.send(bytes(sentence, "utf-8")) # Sends text through socket into TCP connection
+	sentence = input('Input text: ') # Prompts user for input
+	commandSocket.send(bytes(sentence, "utf-8")) # Sends text through socket into TCP connection
 	response = (clientSocket.recv(1024)).decode("utf-8") # Recieves data from server
 	print(response + "\n") # Prints response
 
-clientSocket.close() # Closes TCP connection
+Connect.close_command(commandSocket)
