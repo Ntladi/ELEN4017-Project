@@ -1,7 +1,7 @@
 import socket
 
 def open_command():
-	serverName = '10.203.3.14'
+	serverName = 'localhost'
 	serverPort = 12000 # Sets server port number
 	commandSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Creates the client socket (IPv4, TCP)
 	commandSocket.connect((serverName,serverPort)) # Initiates TCP connection
