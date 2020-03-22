@@ -1,4 +1,4 @@
-import Connect
+import socket
 
 # We'll use a class so that threading is easier to implement later.
 # I'll start slow so that the changes aren't overwhelming.
