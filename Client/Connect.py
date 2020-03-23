@@ -1,10 +1,17 @@
 import socket
+import Command
 
-def open_command():
-	serverName = 'localhost'
+def open_command(serverName):
 	serverPort = 12000 # Sets server port number
 	commandSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Creates the client socket (IPv4, TCP)
-	commandSocket.connect((serverName,serverPort)) # Initiates TCP connection
+
+	try:
+		commandSocket.connect((serverName,serverPort)) # Initiates TCP connection
+		Command.retrieve(commandSocket)
+	except:
+		print("Unable to connect to server")
+		return
+
 	return commandSocket
 
 def close_command(commandSocket):
