@@ -19,9 +19,11 @@ def user(username,commandSocket):
 
 	return True
 
+def port(addr,commandSocket):
+	command = 'PORT ' + addr
+	response = sendCommand(command,commandSocket)
 
+	if response != '530':
+		return False
 
-
-
-
-
+	return True

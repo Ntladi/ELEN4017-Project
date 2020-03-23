@@ -51,20 +51,15 @@ class Server():
 	def PORT(self,dataAddr):
 		# dataAddr = h1,h2,h3,h4,p1,p2 and we must split it
 
-		# Here we recombine hi.h2.h3.h4
-		dataAddr = dataAddr.split(',')
-		hostIP = '.'.join(dataAddr[:4])
-
-		# Here we recombine p1 and p2
-		portNumber = dataAddr[-2:]
-		hostPortUpper = int(portNumber[0])*256
-		hostPortLower = portNumber[1]
-		hostPort = int(hostPortUpper + hostPortLower)
+		splitAddr = dataAddr.split(',')
+		portNumber = splitAddr[-2:]
+		clientIP = '.'.join(splitAddr[:4]) # Join h1,h2,h3,h4
+		hostPort = int(portNumber[0]) + int(portNumber[1]) # Join p1,p2
 
 		# Here we establish the data connection
 		self.dataConn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
-			self.dataConn.connect((hostIP,hostPort))
+			self.dataConn.connect((clientIP,hostPort))
 			self.sendResponse("225 Establishing Active Data Connection\r\n")
 		except:
 			self.sendResponse("425 Unable to Establish Active Data Connection\r\n")
