@@ -4,11 +4,11 @@ import socket
 
 commandSocket = Connect.open_command('localhost')
 
-sentence = ''
+message = input('Please input Username: ') # Prompts user for input
 
-while sentence != 'QUIT':
-	sentence = input('Please input command: ') # Prompts user for input
-	commandSocket.send(sentence.encode())
-	Command.retrieve(commandSocket)
+if Command.user(message,commandSocket):
+	print('Success')
+else:
+	print('Failure')
 
 Connect.close_command(commandSocket)

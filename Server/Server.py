@@ -1,13 +1,8 @@
 import socket
 
-# We'll use a class so that threading is easier to implement later.
-# I'll start slow so that the changes aren't overwhelming.
-# I'll do a lot of commits so the changes are easy to follow
-
 class Server():
-	def __init__(self, connectionSocket, addr, serverName): # __init__() is how a constructor is done in python
-		# These are some of the member variables we'll use in this class more may be added later
-		self.user = ' ' # Used for USER
+	def __init__(self, connectionSocket, addr, serverName):
+		self.user = '' # Used for USER
 		self.validUser = False # Used for PASS
 		self.cmdConn = connectionSocket # Used to estalish commands connection
 		self.serverName = serverName # Keep the servername closeby
@@ -16,28 +11,25 @@ class Server():
 		self.isConnActive = True # boolean for if the connection is still active
 
 	def run(self):
-		# The next 3 commands tel the client their connection was successful
-		print("Connected to: ", str(self.clientAddr))
-		self.sendResponse("220 Successful FTP Connection")
+		print("Connected to: " + str(self.clientAddr) + "\r\n")
+		self.sendResponse("220 Successful FTP Connection\r\n") # Tell client their connection was successful
 
 		while self.isConnActive:
+			clientTransmission = self.cmdConn.recv(1024).decode() # Receive client transmission
+			command = clientTransmission[:4].strip() # Get command from transmission 
+			argument = clientTransmission[4:].strip() # Get argument from transmission
+			self.executeCommand(command,argument)
 
-			# Below are the base minimum FTP Commands some are missing like NOOP and STRU but we'll deal with those later
-			possibleCommands = ['USER', 'PORT', 'RETR', 'STOR', 'QUIT']
+	def executeCommand(self,command,argument):
+		possibleCommands = ['USER', 'PORT', 'RETR', 'STOR', 'QUIT'] # List of implemented FTP Commands
 
-			clientTransmission = self.cmdConn.recv(1024).decode()
-			command = clientTransmission[:4].strip() # The first 4 charachers are the command
-			argument = clientTransmission[4:].strip() # Everything else is the argument
-			# Clever way of turning the command into a function call
-			# Basically turning 'USER' into USER() for example
-			if command in possibleCommands:
-				ftpFunction = getattr(self, command)
-				if argument == '':
-					ftpFunction()
-				else:
-					ftpFunction(argument)
-
-			elif command not in possibleCommands:
+		if command in possibleCommands:
+			ftpFunction = getattr(self, command)
+			if argument == '':
+				ftpFunction()
+			else:
+				ftpFunction(argument)
+		elif command not in possibleCommands:
 				self.sendResponse("502 Command Not Implemented\r\n")
 
 	def sendResponse(self,response):
@@ -46,8 +38,15 @@ class Server():
 		return
 
 	def USER(self, username):
-		self.sendResponse("230 Welcome " + username + "\r\n")
-		# 430 if chowed
+		possibleUsers = ['Ntladi', 'Gerald', 'Learn', 'Tshepo'] # List of Users Registered to the FTP Server
+
+		if username in possibleUsers:
+			self.validUser = True
+			self.user = username
+			self.sendResponse("230 Welcome " + username + "\r\n")
+		else:
+			self.validUser = False
+			self.sendResponse("530 Invalid User \r\n")
 
 	def PORT(self,dataAddr):
 		# dataAddr = h1,h2,h3,h4,p1,p2 and we must split it

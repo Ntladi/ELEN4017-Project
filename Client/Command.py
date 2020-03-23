@@ -1,5 +1,27 @@
+import Connect
 
-# RETR
-def retrieve(commandSocket):
+def receiveResponse(commandSocket):
 	response = (commandSocket.recv(1024)).decode("utf-8")
 	print(response)
+	response = response[:3].strip()
+	return response
+
+def sendCommand(message,commandSocket):
+	commandSocket.send(message.encode())
+	return receiveResponse(commandSocket)
+
+def user(username,commandSocket):
+	command = 'USER ' + username
+	response = sendCommand(command,commandSocket)
+
+	if response != '230':
+		return False
+
+	return True
+
+
+
+
+
+
+
