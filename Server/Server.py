@@ -1,4 +1,6 @@
 import socket
+import os
+import sys
 
 class Server():
 	def __init__(self, connectionSocket, addr, serverName):
@@ -9,6 +11,7 @@ class Server():
 		self.dataConn = None # Used to establish data connection
 		self.clientAddr = addr # Stores the client's IP Address (Probably) 
 		self.isConnActive = True # boolean for if the connection is still active
+		self.bufferSize = 8192 # The file transfer buffer size
 
 	def run(self):
 		print("Connected to: " + str(self.clientAddr) + "\r\n")
@@ -37,20 +40,19 @@ class Server():
 		self.cmdConn.send(response.encode())
 		return
 
-	def USER(self, username):
+	def USER(self, userName):
 		possibleUsers = ['Ntladi', 'Gerald', 'Learn', 'Tshepo'] # List of Users Registered to the FTP Server
 
-		if username in possibleUsers:
+		if userName in possibleUsers:
 			self.validUser = True
-			self.user = username
-			self.sendResponse("230 Welcome " + username + "\r\n")
+			self.user = userName
+			self.sendResponse("230 Welcome " + userName + "\r\n")
 		else:
 			self.validUser = False
 			self.sendResponse("530 Invalid User \r\n")
 
 	def PORT(self,dataAddr):
 		# dataAddr = h1,h2,h3,h4,p1,p2 and we must split it
-
 		splitAddr = dataAddr.split(',')
 		portNumber = splitAddr[-2:]
 		clientIP = '.'.join(splitAddr[:4]) # Join h1,h2,h3,h4
@@ -64,9 +66,18 @@ class Server():
 		except:
 			self.sendResponse("425 Unable to Establish Active Data Connection\r\n")
 
-	def RETR(self):
-		message = "RETR is still a work in progress\r\n"
-		self.sendResponse(message)
+	def RETR(self,filename):
+		filename = "UserFiles/" + self.user + "/" + filename
+		file = open(filename,'rb')
+		readingFile = file.read(1024)
+
+		while readingFile:
+			self.dataConn.send(readingFile)
+			readingFile = file.read(1024)
+
+		self.sendResponse("266 Data Transfer Complete\r\n")
+		self.dataConn.close()
+		file.close()
 
 	def STOR(self, argument):
 		message = "STOR is still a work in progress also the argument is: " + argument + "\r\n"

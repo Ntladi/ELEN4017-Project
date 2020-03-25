@@ -1,7 +1,7 @@
 import Connect
 
 def receiveResponse(commandSocket):
-	response = (commandSocket.recv(1024)).decode("utf-8")
+	response = commandSocket.recv(1024).decode()
 	print(response)
 	response = response[:3].strip()
 	return response

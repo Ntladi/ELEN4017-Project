@@ -38,7 +38,7 @@ def open_data(commandSocket):
 	print("Data Connection Successful\r\n")
 
 	dataSocket.accept()
-	
+
 	return dataSocket
 
 def close_data(dataSocket):
