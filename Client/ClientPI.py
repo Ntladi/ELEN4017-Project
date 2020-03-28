@@ -62,7 +62,7 @@ class ClientPI():
 		else:
 			self.cmdIsActive = False
 
-	def close(self):
+	def logout(self):
 		self.__send_command("QUIT\r\n")
 		self.cmdSocket.close()
 		self.cmdIsActive = False
