@@ -18,3 +18,5 @@
   * To change mode use __mainClient.client.change_mode("*mode*")__
   
   * To change structure use __mainClient.client.change_structure("*structure*")__ 
+
+  __*Note that only the default states for structure (f) and mode (s) have been implemented__
