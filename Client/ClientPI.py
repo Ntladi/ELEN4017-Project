@@ -26,7 +26,7 @@ class ClientPI():
 		return ip 
 
 	def __send_command(self,command):
-		if self.cmdIsActive:
+		if self.__is_CMD_active():
 			print(command)
 			self.cmdSocket.send(command.encode()) # Send command to server
 			return self.__receive_command() # Receive response
@@ -51,6 +51,13 @@ class ClientPI():
 			
 		self.clientDTP.close_data()
 		self.__receive_command()
+
+	def __is_CMD_active(self):
+		if self.cmdIsActive:
+			return True
+		else:
+			print("Control connection not active\r\n")
+			return False
 
 	def open_connection(self):
 		self.cmdSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -85,7 +92,7 @@ class ClientPI():
 			print("User is already logged in\r\n")
 
 	def download(self,fileName):
-		if self.cmdIsActive and self.userIsValid:
+		if self.__is_CMD_active():
 			self.clientDTP.listen(self.clientIP)
 			response = self.__send_command("PORT " + self.__client_address() + "\r\n")
 
@@ -98,10 +105,18 @@ class ClientPI():
 			print("Invalid file name\r\n")
 			return
 
-		if self.cmdIsActive and self.userIsValid:
+		if self.__is_CMD_active():
 			self.clientDTP.listen(self.clientIP)
 			response = self.__send_command("PORT " + self.__client_address() + "\r\n")
 
 			if response == "225":
 				self.clientDTP.accept_connection()
 				self.__begin_upload(fileName)
+
+	def change_structure(self,structure):
+		if self.__is_CMD_active():
+			response = self.__send_command("STRU " + structure + "\r\n")
+			
+	def change_mode(self,mode):
+		if self.__is_CMD_active():
+			response = self.__send_command("MODE " + mode + "\r\n")

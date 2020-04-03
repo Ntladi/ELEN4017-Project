@@ -11,7 +11,7 @@ class ServerPI():
 		self.serverName = serverName
 		self.cmdPort = serverPort
 		self.isCmdActive = False
-		self.possibleCommands = ["USER","PORT","RETR","STOR","QUIT","NOOP"]
+		self.possibleCommands = ["USER","PORT","RETR","STOR","QUIT","NOOP","STRU","MODE"]
 		self.possibleUsers = ["Ntladi","Gerald","Learn","Tshepo"]
 
 	def __send(self,message):
@@ -28,8 +28,12 @@ class ServerPI():
 	def running(self):
 		while self.isCmdActive:
 			clientMessage = self.cmdConn.recv(1024).decode()
-			command = clientMessage[:4].strip()
+			command = clientMessage[:4].strip().upper()
 			argument = clientMessage[4:].strip()
+
+			if not self.validUser and command != "USER" and command != "NOOP":
+				self.__send("530 Please log in\r\n")
+				continue
 
 			if command in self.possibleCommands:
 				self.__execute_command(command,argument)
@@ -47,9 +51,6 @@ class ServerPI():
 		self.isCmdActive = True
 		self.__send("220 Successful control connection\r\n")
 
-	def NOOP(self):
-		self.__send("200 Control connection OK\r\n")
-
 	def USER(self,userName):
 		if userName in self.possibleUsers:
 			self.validUser = True
@@ -57,7 +58,7 @@ class ServerPI():
 			self.__send("230 Welcome " + userName + "\r\n")
 		else:
 			self.validUser = False
-			self.__send("530 Invalid user\r\n")
+			self.__send("332 Invalid user\r\n")
 
 	def PORT(self,dataAddr):
 		splitAddr = dataAddr.split(',')
@@ -97,3 +98,31 @@ class ServerPI():
 		self.isCmdActive = False
 		self.__send("221 Terminating control connection\r\n")
 		self.cmdConn.close()
+
+	def NOOP(self):
+		if self.isCmdActive:
+			self.__send("200 Control connection OK\r\n")
+
+	def STRU(self,argument):
+		argument = argument.upper()
+		possibleArguments = ["F","R","P"]
+
+		if argument in possibleArguments:
+			if argument == "F":
+				self.__send("200 File structure selected\r\n")
+			else:
+				self.__send("500 Only file structure supported\r\n")
+		else:
+			self.__send("501 Not a possible file structure\r\n")
+
+	def MODE(self,argument):
+		argument = argument.upper()
+		possibleArguments = ["S","B","C"]
+
+		if argument in possibleArguments:
+			if argument == "S":
+				self.__send("200 Stream mode selected\r\n")
+			else:
+				self.__send("500 Only stream mode supported\r\n")
+		else:
+			self.__send("501 Not a possible mode\r\n")
