@@ -69,6 +69,9 @@ class ClientPI():
 		else:
 			self.cmdIsActive = False
 
+	def passive_mode(self):
+		self.__send_command("PASV\r\n")
+
 	def logout(self):
 		self.__send_command("QUIT\r\n")
 		self.cmdSocket.close()
@@ -120,3 +123,6 @@ class ClientPI():
 	def change_mode(self,mode):
 		if self.__is_CMD_active():
 			response = self.__send_command("MODE " + mode + "\r\n")
+
+	def current_directory(self):
+		self.__send_command("PWD\r\n")
