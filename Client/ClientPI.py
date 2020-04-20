@@ -33,6 +33,14 @@ class ClientPI():
 		else:
 			print("No control connection\r\n")
 
+	def __is_password_valid(self,password):
+		response = self.__send_command("PASS " + password + "\r\n")
+
+		if response == "230":
+			return True
+		else:
+			return False
+
 	def __begin_download(self,fileName):
 		response = self.__send_command("RETR " + fileName + "\r\n")
 
@@ -81,13 +89,14 @@ class ClientPI():
 	def check_control(self):
 		self.__send_command("NOOP\r\n")
 
-	def login(self,username):
+	def login(self,username,password):
 		if not self.userIsValid:
 			response = self.__send_command("USER " + username + "\r\n")
 
-			if response == "230":
+			if response == "331":
 				self.username = username
-				self.userIsValid = True
+				if self.__is_password_valid(password):
+					self.userIsValid = True
 			else:
 				self.username = ""
 				self.userIsValid = False

@@ -9,6 +9,7 @@ class ServerDTP():
 		self.bufferSize = 8192
 		self.user = None
 		self.currentDirectory = None
+		self.rootDirectory = None
 
 	def generate_data_port(self):
 		dataPortUpper = str(random.randint(12500,32000))
@@ -28,24 +29,35 @@ class ServerDTP():
 	def close_data(self):
 		self.dataConn.close()
 
-	def does_file_exist(self,filePath):
-		filePath = self.files + filePath
+	def does_file_exist(self,fileName):
+		filePath = self.rootDirectory + self.currentDirectory + fileName
 
 		if os.path.isfile(filePath):
 			return True
 		return False
 
-	def current_directory(self):
-		return self.currentDirectory
+	def is_password_valid(self,password):
+		passwordPath = "UserFiles/" + self.user + "/Phrase.txt"
+		file = open(passwordPath,"r")
+		data = file.readlines()
+		file.close()
+
+		if password in data:
+			return True
+		else:
+			return False
 
 	def set_user(self,userName):
 		self.user = userName
-		self.currentDirectory = self.user + "/"
-		self.files = "UserFiles/" + self.currentDirectory
+		self.rootDirectory = "UserFiles/" + self.user + "/Files"
+		self.currentDirectory = "/"
 
-	def begin_download(self,filePath):
-		filePath = self.files + filePath
-		file = open(filePath,"rb")
+	def current_directory(self):
+		return self.currentDirectory
+
+	def begin_download(self,fileName):
+		fileName = self.rootDirectory + self.currentDirectory + fileName
+		file = open(fileName,"rb")
 		readingFile = file.read(self.bufferSize)
 
 		while readingFile:
@@ -55,7 +67,7 @@ class ServerDTP():
 		file.close()
 
 	def begin_upload(self,fileName):
-		fileName = self.files + fileName
+		fileName = self.rootDirectory + self.currentDirectory + fileName
 		file = open(fileName,"wb")
 		writingFile = self.dataConn.recv(self.bufferSize)
 

@@ -11,9 +11,9 @@ class ServerPI():
 		self.serverName = serverName
 		self.cmdPort = serverPort
 		self.isCmdActive = False
-		self.possibleCommands = ["USER","PASV","PORT","SYST","RETR","STOR","QUIT",
+		self.possibleCommands = ["USER","PASS","PASV","PORT","SYST","RETR","STOR","QUIT",
 		"NOOP","STRU","MODE","PWD","MKD","TYPE"]
-		self.noUserCommands = ["USER","NOOP","QUIT"]
+		self.noUserCommands = ["USER","NOOP","QUIT","PASS"]
 		self.possibleUsers = ["Ntladi","Gerald","Learn","Tshepo"]
 		self.current_mode = "S"
 		self.current_type = "I"
@@ -68,13 +68,25 @@ class ServerPI():
 
 	def USER(self,userName):
 		if userName in self.possibleUsers:
-			self.validUser = True
 			self.user = userName
 			self.serverDTP.set_user(self.user)
-			self.__send("230 Welcome " + userName + "\r\n")
+			self.__send("331 Please enter password " + userName + "\r\n")
 		else:
 			self.validUser = False
 			self.__send("332 Invalid user\r\n")
+
+	def PASS(self,password = "phrase"):
+		if self.user == "":
+			self.__send("530 Please log in\r\n")
+			return
+
+		if self.serverDTP.is_password_valid(password):
+			self.validUser = True
+			self.__send("230 Welcome " + self.user + "\r\n")
+		else:
+			self.validUser = False
+			self.__send("501 Invalid password\r\n")
+
 
 	def PASV(self):
 		dataPort = self.serverDTP.generate_data_port()
@@ -128,7 +140,6 @@ class ServerPI():
 		self.__send("221 Terminating control connection\r\n")
 		self.isCmdActive = False
 		self.cmdConn.close()
-		self.dataConn.close()
 
 	def NOOP(self):
 		if self.isCmdActive:
@@ -174,5 +185,5 @@ class ServerPI():
 			self.__send("501 Not a possible mode\r\n")
 
 	def PWD(self):
-		directory = "\"/" + self.serverDTP.current_directory() + "\""
+		directory = "\"" + self.serverDTP.current_directory() + "\""
 		self.__send("200 " + "Current Working Directory: " + directory + "\r\n")
