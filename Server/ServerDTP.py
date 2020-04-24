@@ -1,6 +1,8 @@
 import socket
 import random
 import os
+import datetime
+import stat
 
 class ServerDTP():
 	def __init__(self):
@@ -112,8 +114,7 @@ class ServerDTP():
 		self.currentDirectory = "/"
 
 	def change_directory(self,dirPath):
-		if does_directory_exist(dirPath):
-			self.currentDirectory = dirPath
+		self.currentDirectory = dirPath
 
 	# Functions for data transfer
 ###################################################################################
@@ -140,5 +141,19 @@ class ServerDTP():
 		file.close()
 
 	def send_list(self,dirPath):
-		pass
+		dirList = []
+		currentDirectory = self.rootDirectory + self.currentDirectory
+		items = os.listdir(currentDirectory)
+		for file in items:
+			newPath = os.path.join(currentDirectory,file)
+			dateModified = datetime.datetime.fromtimestamp(os.path.getmtime(newPath)).strftime("%b %d %H:%M")
+			fileStats = os.stat(newPath)
+			linkNum = fileStats.st_nlink
+			userID = fileStats.st_uid
+			groupID = fileStats.st_gid
+			fileSize = os.path.getsize(newPath)
+			fileData = str(stat.filemode(os.stat(newPath).st_mode)) + "\t" + str(linkNum) + "\t" + str(userID) + "\t" + str(groupID) + "\t\t" + str(fileSize) + "\t" + str(dateModified) + "\t" + file 
+			dirList.append(fileData)
 
+		for item in dirList:
+			self.dataConn.send((item + "\r\n").encode())

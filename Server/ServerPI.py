@@ -11,7 +11,7 @@ class ServerPI():
 		self.cmdPort = serverPort
 		self.isCmdActive = False
 		self.possibleCommands = ["USER","PASS","PASV","PORT","SYST","RETR","STOR","QUIT",
-		"NOOP","TYPE","STRU","MODE","PWD","LIST"]
+		"NOOP","TYPE","STRU","MODE","PWD","CWD","LIST"]
 		self.noUserCommands = ["USER","NOOP","QUIT","PASS"]
 		self.possibleUsers = ["Ntladi","Gerald","Learn","Tshepo"]
 		self.current_mode = "S"
@@ -184,19 +184,27 @@ class ServerPI():
 
 	def PWD(self):
 		directory = "\"" + self.serverDTP.current_directory() + "\""
-		self.__send("200 " + "Current Working Directory: " + directory + "\r\n")
+		self.__send("200 " + "Current working directory: " + directory + "\r\n")
+
+	def CWD(self,dirPath):
+		if self.serverDTP.does_directory_exist("/" + dirPath):
+			self.serverDTP.change_directory("/" + dirPath)
+			directory = "\"" + self.serverDTP.current_directory() + "\""
+			self.__send("250 " + "Working directory changed to: " + directory + "\r\n")
+		else:
+			self.__send("501 directory does not exist\r\n")
+
+	def CDUP(self):
+		self.serverDTP.change_directory("/")
+		self.__send("200 " + "Changed to root directory\r\n")
 
 	def LIST(self,dirPath = ""):
-
-		print("Path before: " + dirPath + "\r\n")
 		if dirPath == "":
 			dirPath = self.serverDTP.current_directory()
-
-		print("Path after: " + dirPath + "\r\n")
 		if self.serverDTP.does_directory_exist(dirPath):
 			try:
 				self.__send("125 Sending file list\r\n")
-				# self.serverDTP.send_list(dirPath)
+				self.serverDTP.send_list(dirPath)
 				self.serverDTP.close_data()
 				self.__send("226 List successfully sent\r\n")
 			except:
