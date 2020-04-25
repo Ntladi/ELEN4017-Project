@@ -78,17 +78,24 @@ class ServerDTP():
 
 	# Functions for querying file system info (get functions)
 ###################################################################################
-	def does_file_exist(self,fileName):
-		filePath = self.rootDirectory + self.currentDirectory + fileName
+	def __path_relative_to_root(self,path,isDir):
+		if isDir:
+			path = path + "/"
+		if path[0] != "/":
+			path = self.rootDirectory + self.currentDirectory + path
+		else:
+			path = self.rootDirectory + path
+		return path
 
+	def does_file_exist(self,filePath):
+		filePath = self.__path_relative_to_root(filePath,False)
 		if os.path.isfile(filePath):
 			return True
 		return False
 
 	def does_directory_exist(self,dirPath):
-		directoryPath = self.rootDirectory + dirPath
-
-		if os.path.isdir(directoryPath):
+		dirPath = self.__path_relative_to_root(dirPath,True)
+		if os.path.isdir(dirPath):
 			return True
 		return False
 
@@ -97,7 +104,6 @@ class ServerDTP():
 		file = open(passwordPath,"r")
 		data = file.readlines()
 		file.close()
-
 		if password in data:
 			return True
 		else:
@@ -114,7 +120,30 @@ class ServerDTP():
 		self.currentDirectory = "/"
 
 	def change_directory(self,dirPath):
-		self.currentDirectory = dirPath
+		dirPath = dirPath + "/"
+		if dirPath[0] != "/":
+			self.currentDirectory = self.currentDirectory + dirPath
+		else:
+			self.currentDirectory = dirPath
+
+	def make_directory(self,dirPath):
+		dirPath = self.__path_relative_to_root(dirPath,True)
+		os.mkdir(dirPath)
+
+	def delete_directory(self,dirPath):
+		dirPath = self.__path_relative_to_root(dirPath,True)
+		os.rmdir(dirPath)
+
+	def delete_file(self,filePath):
+		filePath = self.__path_relative_to_root(filePath,False)
+		os.remove(filePath)
+
+	def change_to_parent_directory(self):
+		parent = self.currentDirectory.split("/")
+		parent = "/".join(parent[0:-2]) + "/"
+		if parent[0] != "/":
+			parent = "/" + parent
+		self.currentDirectory = parent
 
 	# Functions for data transfer
 ###################################################################################
@@ -122,22 +151,18 @@ class ServerDTP():
 		fileName = self.rootDirectory + self.currentDirectory + fileName
 		file = open(fileName,"rb")
 		readingFile = file.read(self.bufferSize)
-
 		while readingFile:
 			self.dataConn.send(readingFile)
 			readingFile = file.read(self.bufferSize)
-
 		file.close()
 
 	def begin_upload(self,fileName):
 		fileName = self.rootDirectory + self.currentDirectory + fileName
 		file = open(fileName,"wb")
 		writingFile = self.dataConn.recv(self.bufferSize)
-
 		while writingFile:
 			file.write(writingFile)
 			writingFile = self.dataConn.recv(self.bufferSize)
-		
 		file.close()
 
 	def send_list(self,dirPath):
@@ -154,6 +179,5 @@ class ServerDTP():
 			fileSize = os.path.getsize(newPath)
 			fileData = str(stat.filemode(os.stat(newPath).st_mode)) + "\t" + str(linkNum) + "\t" + str(userID) + "\t" + str(groupID) + "\t\t" + str(fileSize) + "\t" + str(dateModified) + "\t" + file 
 			dirList.append(fileData)
-
 		for item in dirList:
 			self.dataConn.send((item + "\r\n").encode())

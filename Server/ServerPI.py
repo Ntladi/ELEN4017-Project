@@ -11,7 +11,7 @@ class ServerPI():
 		self.cmdPort = serverPort
 		self.isCmdActive = False
 		self.possibleCommands = ["USER","PASS","PASV","PORT","SYST","RETR","STOR","QUIT",
-		"NOOP","TYPE","STRU","MODE","PWD","CWD","LIST"]
+		"NOOP","TYPE","STRU","MODE","PWD","CWD","CDUP","MKD","RMD","DELE","LIST"]
 		self.noUserCommands = ["USER","NOOP","QUIT","PASS"]
 		self.possibleUsers = ["Ntladi","Gerald","Learn","Tshepo"]
 		self.current_mode = "S"
@@ -187,16 +187,40 @@ class ServerPI():
 		self.__send("200 " + "Current working directory: " + directory + "\r\n")
 
 	def CWD(self,dirPath):
-		if self.serverDTP.does_directory_exist("/" + dirPath):
-			self.serverDTP.change_directory("/" + dirPath)
+		if dirPath == "..":
+			self.CDUP()
+			return
+		if self.serverDTP.does_directory_exist(dirPath):
+			self.serverDTP.change_directory(dirPath)
 			directory = "\"" + self.serverDTP.current_directory() + "\""
-			self.__send("250 " + "Working directory changed to: " + directory + "\r\n")
+			self.__send("250 Working directory changed to: " + directory + "\r\n")
 		else:
 			self.__send("501 directory does not exist\r\n")
 
 	def CDUP(self):
-		self.serverDTP.change_directory("/")
-		self.__send("200 " + "Changed to root directory\r\n")
+		self.serverDTP.change_to_parent_directory()
+		self.__send("200 " + "Working directory changed to: " + "\"" + self.serverDTP.current_directory() + "\"\r\n")
+
+	def MKD(self,dirPath):
+		if not self.serverDTP.does_directory_exist(dirPath):
+			self.serverDTP.make_directory(dirPath)
+			self.__send("257 Directory created" + "\r\n")
+		else:
+			self.__send("501 directory already exists\r\n")
+
+	def RMD(self,dirPath):
+		if self.serverDTP.does_directory_exist(dirPath):
+			self.serverDTP.delete_directory(dirPath)
+			self.__send("250 Directory deleted\r\n")
+		else:
+			self.__send("501 directory does not exist\r\n")
+
+	def DELE(self,filePath):
+		if self.serverDTP.does_file_exist(filePath):
+			self.serverDTP.delete_file(filePath)
+			self.__send("250 File deleted\r\n")
+		else:
+			self.__send("File does not exist\r\n")
 
 	def LIST(self,dirPath = ""):
 		if dirPath == "":
