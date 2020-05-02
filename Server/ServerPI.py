@@ -43,19 +43,25 @@ class ServerPI():
 	# Functions for the main server loop
 ###################################################################################
 	def running(self):
-		while self.isCmdActive:
-			clientMessage = self.cmdConn.recv(1024).decode()
-			print(clientMessage)
-			cmdLen = self.__command_length(clientMessage)
-			command = clientMessage[:cmdLen].strip().upper()
-			argument = clientMessage[cmdLen:].strip()
-			if not self.validUser and command not in self.noUserCommands:
-				self.__send("530 Please log in\r\n")
-				continue
-			if command in self.possibleCommands:
-				self.__execute_command(command,argument)
-			else:
-				self.__send("502 Command not implemented\r\n")
+		try:
+			while self.isCmdActive:
+				clientMessage = self.cmdConn.recv(1024).decode()
+				print(clientMessage)
+				cmdLen = self.__command_length(clientMessage)
+				command = clientMessage[:cmdLen].strip().upper()
+				argument = clientMessage[cmdLen:].strip()
+				if not self.validUser and command not in self.noUserCommands:
+					self.__send("530 Please log in\r\n")
+					continue
+				if command in self.possibleCommands:
+					self.__execute_command(command,argument)
+				else:
+					self.__send("502 Command not implemented\r\n")
+		except socket.error:
+			print("Terminating control connection\r\n")
+			self.isCmdActive = False
+			self.cmdConn.close()
+			self.serverDTP.close_data()
 
 	# Functions for opening the control connection
 ###################################################################################
