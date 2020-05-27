@@ -1,15 +1,19 @@
 import socket
+import threading
 from ServerDTP import ServerDTP
 
-class ServerPI():
-	def __init__(self, serverName, serverPort):
+class ServerPI(threading.Thread):
+	def __init__(self, name, serverIP, serverPort, cmdConn, addr):
+		threading.Thread.__init__(self)
+		self.name = name
+		self.serverIP = serverIP
+		self.cmdPort = serverPort
+		self.cmdConn = cmdConn
+		self.addr = addr
 		self.serverDTP = ServerDTP()
 		self.user = ""
 		self.validUser = False
-		self.cmdConn = None
-		self.serverName = serverName
-		self.cmdPort = serverPort
-		self.isCmdActive = False
+		self.isCmdActive = True
 		self.possibleCommands = ["USER","PASS","PASV","PORT","SYST","RETR","STOR","QUIT",
 		"NOOP","TYPE","STRU","MODE","PWD","CWD","CDUP","MKD","RMD","DELE","LIST"]
 		self.noUserCommands = ["USER","NOOP","QUIT","PASS"]
@@ -19,18 +23,18 @@ class ServerPI():
 
 	# Functions for sending and receiving commands
 ###################################################################################
-	def __send(self,message):
+	def __send(self, message):
 		print(message)
 		self.cmdConn.send(message.encode())
 
-	def __execute_command(self,command,argument):
-		ftpFunction = getattr(self,command)
+	def __execute_command(self, command, argument):
+		ftpFunction = getattr(self, command)
 		if argument == "":
 			ftpFunction()
 		else:
 			ftpFunction(argument)
 
-	def __command_length(self,clientMessage):
+	def __command_length(self, clientMessage):
 		space_pos = clientMessage.find(" ")
 		messageSize = 0
 		if space_pos == -1:
@@ -42,7 +46,9 @@ class ServerPI():
 
 	# Functions for the main server loop
 ###################################################################################
-	def running(self):
+	def run(self):
+		print(self.name + " connected to " + str(self.addr) + "\r\n")
+		self.__send("220 Successful control connection\r\n")
 		try:
 			while self.isCmdActive:
 				clientMessage = self.cmdConn.recv(1024).decode()
@@ -54,7 +60,7 @@ class ServerPI():
 					self.__send("530 Please log in\r\n")
 					continue
 				if command in self.possibleCommands:
-					self.__execute_command(command,argument)
+					self.__execute_command(command, argument)
 				else:
 					self.__send("502 Command not implemented\r\n")
 		except socket.error:
@@ -67,7 +73,7 @@ class ServerPI():
 ###################################################################################
 	def open_connection(self):
 		cmdSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		cmdSocket.bind((self.serverName,self.cmdPort))
+		cmdSocket.bind((self.serverName, self.cmdPort))
 		cmdSocket.listen(1)
 		print("Server is listening for client\r\n")
 		self.cmdConn, addr = cmdSocket.accept()
@@ -99,9 +105,9 @@ class ServerPI():
 
 	def PASV(self):
 		try:
-			self.serverDTP.listen_passive(self.serverName)
+			self.serverDTP.listen_passive(self.serverIP)
 			self.__send("227 Entering Passive connection mode " + 
-			self.serverDTP.server_address_passive(self.serverName) + "\r\n")
+			self.serverDTP.server_address_passive(self.serverIP) + "\r\n")
 			self.serverDTP.accept_connection_passive()
 		except:
 			self.__send("425 Cannot open PASV data connection")
