@@ -122,7 +122,7 @@ class ServerPI(threading.Thread):
 			self.serverDTP.close_data()
 
 	def SYST(self):
-		self.__send("215 MACOS\r\n")
+		self.__send("215 UNIX\r\n")
 
 	def RETR(self,fileName):
 		if self.serverDTP.does_file_exist(fileName):
@@ -237,6 +237,7 @@ class ServerPI(threading.Thread):
 	def LIST(self,dirPath = ""):
 		if dirPath == "":
 			dirPath = self.serverDTP.current_directory()
+		print(dirPath + "\r\n")
 		if self.serverDTP.does_directory_exist(dirPath):
 			try:
 				self.__send("125 Sending file list\r\n")

@@ -78,9 +78,7 @@ class ServerDTP():
 
 	# Functions for querying file system info (get functions)
 ###################################################################################
-	def __path_relative_to_root(self,path,isDir):
-		if isDir:
-			path = path + "/"
+	def __path_relative_to_root(self,path):
 		if path[0] != "/":
 			path = self.rootDirectory + self.currentDirectory + path
 		else:
@@ -88,13 +86,14 @@ class ServerDTP():
 		return path
 
 	def does_file_exist(self,filePath):
-		filePath = self.__path_relative_to_root(filePath,False)
+		filePath = self.__path_relative_to_root(filePath)
 		if os.path.isfile(filePath):
 			return True
 		return False
 
 	def does_directory_exist(self,dirPath):
-		dirPath = self.__path_relative_to_root(dirPath,True)
+		dirPath = self.__path_relative_to_root(dirPath)
+		print("DTP Path = " + dirPath + "\r\n")
 		if os.path.isdir(dirPath):
 			return True
 		return False
@@ -127,15 +126,15 @@ class ServerDTP():
 			self.currentDirectory = dirPath
 
 	def make_directory(self,dirPath):
-		dirPath = self.__path_relative_to_root(dirPath,True)
+		dirPath = self.__path_relative_to_root(dirPath)
 		os.mkdir(dirPath)
 
 	def delete_directory(self,dirPath):
-		dirPath = self.__path_relative_to_root(dirPath,True)
+		dirPath = self.__path_relative_to_root(dirPath)
 		os.rmdir(dirPath)
 
 	def delete_file(self,filePath):
-		filePath = self.__path_relative_to_root(filePath,False)
+		filePath = self.__path_relative_to_root(filePath)
 		os.remove(filePath)
 
 	def change_to_parent_directory(self):
