@@ -5,24 +5,12 @@
 ``` bash 
 python3 mainServer.py
 ```
-  * _Note start the server before starting the client_
+  * _**Note** start the server before starting the client_
 
 2. To run the client, start the python shell and run:
 ``` bash
-import mainClient.py
+python3 mainClient.py
 ```
-  * To login, use `mainClient.client.login("username","password")`
+  * Files downloaded from the server are stored in the `Client/Transfers/FromServer` directory.
 
-  * To logout, use `mainClient.client.close_connections()`
-
-  * To download use `mainClient.client.download("filename.extention")`
-
-  * To upload use `mainClient.client.upload("filename.extention")`
-
-  * To noop use `mainClient.client.check_control()`
-
-  * To change mode use `mainClient.client.change_mode("mode")`
-  
-  * To change structure use `mainClient.client.change_structure("structure")` 
-
-  __*Note that only the default states for structure (f) and mode (s) have been implemented__
+  * Files that are to be uploaded to the server must be placed in the `Client/Transfers/ToServer` directory first.

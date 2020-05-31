@@ -9,9 +9,9 @@ class ClientUI(Cmd):
 		self.client.file_structure()
 		self.client.binary_type()
 		self.client.present_working_directory()
-		self.client.binary_type()
 		self.client.update_remote_directory_list()
 		self.__print_directory_list()
+		print("Type \'help\' to see the list of available functions and \'quit\' to exit\r\n")
 
 	# Connection related functions
 ###################################################################################
