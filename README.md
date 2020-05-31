@@ -1,4 +1,8 @@
 # ELEN4017-Network Fundamentals
+
+## Prerequisites
+  * Python >= 3.8
+
 ## File Transfer Protocol Project
 
 1. To run the server, navigate to the `Server` directory in the terminal and run the following command: 
