@@ -1,13 +1,13 @@
 # ELEN4017-Network Fundamentals
 ## File Transfer Protocol Project
 
-1. To run the server, run the following command: 
+1. To run the server, navigate to the `Server` directory in the terminal and run the following command: 
 ``` bash 
 python3 mainServer.py
 ```
   * _**Note** start the server before starting the client_
 
-2. To run the client, start the python shell and run:
+2. To run the client, navigate to the `Client` directory in the terminal and run the following command:
 ``` bash
 python3 mainClient.py
 ```
