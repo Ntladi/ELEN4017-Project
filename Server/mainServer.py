@@ -2,18 +2,21 @@ import sys
 import socket
 from ServerPI import ServerPI
 
-clients = int(sys.argv[1])
+clients = input("Enter number of expected clients: ")
+clients = int(clients)
 connections = []
 
+serverIP = "127.0.0.1"
+serverPort = 12000
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serverSocket.bind(("127.0.0.1", 12000))
+serverSocket.bind((serverIP, serverPort))
 print("Awaiting clients\r\n")
 
 for i in range(1, clients + 1):
 	try:
 		serverSocket.listen(1)
 		conn, addr = serverSocket.accept()
-		server = ServerPI(f"Connection-{i}", "127.0.0.1", 12000, conn, addr)
+		server = ServerPI(f"Connection-{i}", serverIP, serverPort, conn, addr)
 		server.start()
 		connections.append(server)
 	except:

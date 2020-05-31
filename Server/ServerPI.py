@@ -69,21 +69,9 @@ class ServerPI(threading.Thread):
 			self.cmdConn.close()
 			self.serverDTP.close_data()
 
-	# Functions for opening the control connection
-###################################################################################
-	def open_connection(self):
-		cmdSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		cmdSocket.bind((self.serverName, self.cmdPort))
-		cmdSocket.listen(1)
-		print("Server is listening for client\r\n")
-		self.cmdConn, addr = cmdSocket.accept()
-		print("Connected to: " + str(addr) + "\r\n")
-		self.isCmdActive = True
-		self.__send("220 Successful control connection\r\n")
-
 	# Functions for handling FTP commands
 ###################################################################################
-	def USER(self,userName):
+	def USER(self, userName):
 		if userName in self.possibleUsers:
 			self.user = userName
 			self.serverDTP.set_user(self.user)
@@ -92,7 +80,7 @@ class ServerPI(threading.Thread):
 			self.validUser = False
 			self.__send("332 Invalid user\r\n")
 
-	def PASS(self,password = "phrase"):
+	def PASS(self, password = "phrase"):
 		if self.user == "":
 			self.__send("530 Please log in\r\n")
 			return
@@ -113,7 +101,7 @@ class ServerPI(threading.Thread):
 			self.__send("425 Cannot open PASV data connection")
 			self.serverDTP.close_data()
 
-	def PORT(self,dataAddr):
+	def PORT(self, dataAddr):
 		try:
 			self.serverDTP.make_connection_active(dataAddr)
 			self.__send("225 Active data connection established\r\n")
@@ -124,7 +112,7 @@ class ServerPI(threading.Thread):
 	def SYST(self):
 		self.__send("215 UNIX\r\n")
 
-	def RETR(self,fileName):
+	def RETR(self, fileName):
 		if self.serverDTP.does_file_exist(fileName):
 			try:
 				self.__send("125 Sending " + fileName + " to client\r\n")
@@ -138,7 +126,7 @@ class ServerPI(threading.Thread):
 			self.__send("450 Invalid file\r\n")
 			self.serverDTP.close_data()
 
-	def STOR(self,fileName):
+	def STOR(self, fileName):
 		try:
 			self.__send("125 Receiving " + fileName + " from client\r\n")
 			self.serverDTP.begin_upload(fileName)
@@ -158,7 +146,7 @@ class ServerPI(threading.Thread):
 		if self.isCmdActive:
 			self.__send("200 Control connection OK\r\n")
 
-	def TYPE(self,argument):
+	def TYPE(self, argument):
 		argument = argument.upper()
 		possibleArguments = ["A","I"]
 		if argument in possibleArguments:
@@ -171,7 +159,7 @@ class ServerPI(threading.Thread):
 		else:
 			self.__send("501 Invalid Type selected\r\n")
 
-	def STRU(self,argument):
+	def STRU(self, argument):
 		argument = argument.upper()
 		possibleArguments = ["F","R","P"]
 		if argument in possibleArguments:
@@ -182,7 +170,7 @@ class ServerPI(threading.Thread):
 		else:
 			self.__send("501 Not a possible file structure\r\n")
 
-	def MODE(self,argument):
+	def MODE(self, argument):
 		argument = argument.upper()
 		possibleArguments = ["S","B","C"]
 		if argument in possibleArguments:
@@ -198,7 +186,7 @@ class ServerPI(threading.Thread):
 		directory = "\"" + self.serverDTP.current_directory() + "\""
 		self.__send("200 " + "Current working directory: " + directory + "\r\n")
 
-	def CWD(self,dirPath):
+	def CWD(self, dirPath = "/"):
 		if dirPath == "..":
 			self.CDUP()
 			return
@@ -213,31 +201,30 @@ class ServerPI(threading.Thread):
 		self.serverDTP.change_to_parent_directory()
 		self.__send("200 " + "Working directory changed to: " + "\"" + self.serverDTP.current_directory() + "\"\r\n")
 
-	def MKD(self,dirPath):
+	def MKD(self, dirPath):
 		if not self.serverDTP.does_directory_exist(dirPath):
 			self.serverDTP.make_directory(dirPath)
 			self.__send("257 Directory created" + "\r\n")
 		else:
 			self.__send("501 directory already exists\r\n")
 
-	def RMD(self,dirPath):
+	def RMD(self, dirPath):
 		if self.serverDTP.does_directory_exist(dirPath):
 			self.serverDTP.delete_directory(dirPath)
 			self.__send("250 Directory deleted\r\n")
 		else:
 			self.__send("501 directory does not exist\r\n")
 
-	def DELE(self,filePath):
+	def DELE(self, filePath):
 		if self.serverDTP.does_file_exist(filePath):
 			self.serverDTP.delete_file(filePath)
 			self.__send("250 File deleted\r\n")
 		else:
 			self.__send("File does not exist\r\n")
 
-	def LIST(self,dirPath = ""):
+	def LIST(self, dirPath = ""):
 		if dirPath == "":
 			dirPath = self.serverDTP.current_directory()
-		print(dirPath + "\r\n")
 		if self.serverDTP.does_directory_exist(dirPath):
 			try:
 				self.__send("125 Sending file list\r\n")
@@ -248,6 +235,6 @@ class ServerPI(threading.Thread):
 				self.serverDTP.close_data()
 				self.__send("426 Unable to send list to client\r\n")
 		else:
-			self.__send("450 Invalid file path\r\n")
 			self.serverDTP.close_data()
+			self.__send("450 Invalid file path\r\n")
 

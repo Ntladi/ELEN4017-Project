@@ -12,8 +12,9 @@ class ClientDTP():
 		self.isConnOpen = False
 		self.isConnPassive = True
 		self.bufferSize = 1024
-		self.downloadsFolder = "FromServer/"
-		self.uploadsFolder = "ToServer/"
+		self.downloadsFolder = "Transfers/FromServer/"
+		self.uploadsFolder = "Transfers/ToServer/"
+		self.remoteList = []
 
 	# Functions for establishing an active data connection
 ###################################################################################
@@ -39,7 +40,7 @@ class ClientDTP():
 		self.isConnOpen = True
 		print("Successful active data connection\r\n")
 
-	# Functions for establishing an active data connection
+	# Functions for establishing a passive data connection
 ###################################################################################
 	def __extract_server_ip_passive(self,address):
 		ip = address[0] + "." + address[1] + "." + address[2] + "." + address[3]
@@ -97,17 +98,15 @@ class ClientDTP():
 ###################################################################################
 	def does_file_exist(self,fileName):
 		filePath = self.uploadsFolder + fileName
-
 		if os.path.isfile(filePath):
 			return True
 		return False
 
-	# Functions for transfering files
+	# Functions for data transfer to/from server
 ###################################################################################
 	def from_server(self,fileName):
 		file = open(self.downloadsFolder + fileName,"wb")
 		data = self.dataConn.recv(self.bufferSize)
-
 		while data:
 			file.write(data)
 			data = self.dataConn.recv(self.bufferSize)
@@ -116,11 +115,32 @@ class ClientDTP():
 	def to_server(self,fileName):
 		file = open(self.uploadsFolder + fileName,"rb")
 		data = file.read(self.bufferSize)
-
 		while data:
 			self.dataConn.send(data)
 			data = file.read(self.bufferSize)
 		file.close()
 
-	def get_list(self):
-		pass
+	def download_remote_list(self):
+		listData = self.dataConn.recv(self.bufferSize).decode().rstrip()
+		self.remoteList = []
+		while listData:
+			fileInfo = listData.split("\r")
+			for item in fileInfo:
+				item = item.strip().rstrip()
+				self.__curate_list(item)
+				listData = self.dataConn.recv(self.bufferSize).decode().rstrip()
+
+	# Functions for managing the list of directory items
+###################################################################################
+	def __curate_list(self, item):
+		temp = item.split()
+		fileName = " ".join(temp[8:])
+		fileSize = str(" ".join(temp[4:5])) + " Bytes"
+		lastModified = " ".join(temp[5:8])
+		permissions = " ".join(temp[0:1])
+		tempList = [fileName, fileSize, lastModified, permissions]
+		tempList = list(filter(None, tempList))
+		self.remoteList.append(tempList)
+
+	def get_remote_list(self):
+		return self.remoteList
