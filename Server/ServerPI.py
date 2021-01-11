@@ -1,18 +1,14 @@
 import socket
-import threading
 from ServerDTP import ServerDTP
 
-class ServerPI(threading.Thread):
-	def __init__(self, name, serverIP, serverPort, cmdConn, addr):
-		threading.Thread.__init__(self)
-		self.name = name
-		self.serverIP = serverIP
-		self.cmdPort = serverPort
-		self.cmdConn = cmdConn
-		self.addr = addr
+class ServerPI():
+	def __init__(self, serverName, serverPort):
 		self.serverDTP = ServerDTP()
 		self.user = ""
 		self.validUser = False
+		self.cmdConn = None
+		self.serverName = serverName 
+		self.cmdPort = serverPort
 		self.isCmdActive = True
 		self.possibleCommands = ["USER","PASS","PASV","PORT","SYST","RETR","STOR","QUIT",
 		"NOOP","TYPE","STRU","MODE","PWD","CWD","CDUP","MKD","RMD","DELE","LIST"]
@@ -46,9 +42,7 @@ class ServerPI(threading.Thread):
 
 	# Functions for the main server loop
 ###################################################################################
-	def run(self):
-		print(self.name + " connected to " + str(self.addr) + "\r\n")
-		self.__send("220 Successful control connection\r\n")
+	def running(self):
 		try:
 			while self.isCmdActive:
 				clientMessage = self.cmdConn.recv(1024).decode()
@@ -68,6 +62,18 @@ class ServerPI(threading.Thread):
 			self.isCmdActive = False
 			self.cmdConn.close()
 			self.serverDTP.close_data()
+
+	# Functions for opening the control connection
+###################################################################################
+	def open_connection(self):
+		cmdSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		cmdSocket.bind((self.serverName,self.cmdPort))
+		cmdSocket.listen(1)
+		print("Server is listening for client\r\n")
+		self.cmdConn, addr = cmdSocket.accept()
+		print("Connected to: " + str(addr) + "\r\n")
+		self.isCmdActive = True
+		self.__send("220 Successful control connection\r\n")
 
 	# Functions for handling FTP commands
 ###################################################################################
@@ -93,9 +99,9 @@ class ServerPI(threading.Thread):
 
 	def PASV(self):
 		try:
-			self.serverDTP.listen_passive(self.serverIP)
+			self.serverDTP.listen_passive(self.serverName)
 			self.__send("227 Entering Passive connection mode " + 
-			self.serverDTP.server_address_passive(self.serverIP) + "\r\n")
+			self.serverDTP.server_address_passive(self.serverName) + "\r\n")
 			self.serverDTP.accept_connection_passive()
 		except:
 			self.__send("425 Cannot open PASV data connection")
